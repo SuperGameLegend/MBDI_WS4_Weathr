@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @State var weatherData: WeatherData?
     @State var test = ""
+    @State var currentTemperature = "23"
     var body: some View {
         ZStack {
             
@@ -18,7 +19,7 @@ struct ContentView: View {
             VStack{
                 Text(test).font(.custom("Helvetica Neue UltraLight",size:70))
                 
-                Text("23°C").font(.custom("Helvetica Neue UltraLight",size:120))
+                Text(currentTemperature).font(.custom("Helvetica Neue UltraLight",size:120))
             }
 
         }
@@ -28,10 +29,15 @@ struct ContentView: View {
     }
     
     func loadData(urlString: String){
+        var temperature = "?"
         guard let url = URL(string:urlString) else {
             print("ERROR: failed to construct a URL from string"); return}
         print(url)
-        print(url.absoluteString)
+        let task = URLSession.shared.dataTask(with: url) {
+            data, response, error in
+        }
+        print(task.response)
+        currentTemperature = temperature
         
     }
     
