@@ -9,27 +9,39 @@ import SwiftUI
 
 struct ContentView: View {
     @State var weatherData: WeatherData?
-    @State var test = ""
-    @State var currentTemperature = "23"
+    @State var currentTemperature = "?"
+    @State var input = ""
+    @State var city = "Utrecht"
     var body: some View {
         ZStack {
-            
-
-            Image("Lenticular_Cloud").resizable().ignoresSafeArea().aspectRatio(contentMode: .fill)
+            GeometryReader { geometry in
+                Image("Lenticular_Cloud")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height) // Ensure it takes full screen size
+                    .ignoresSafeArea()
+            }
             VStack{
-                Text(test).font(.custom("Helvetica Neue UltraLight",size:70))
+                Text(getTemperatureString()).font(.custom("Helvetica Neue UltraLight",size:95))
                 
-                Text(currentTemperature).font(.custom("Helvetica Neue UltraLight",size:120))
+                TextField("Enter something", text: $input)
+                     .padding()
+                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                     .onSubmit {
+                         // Action when Enter key is pressed
+                         city = input
+                         input = ""
+                         loadData(urlString: "https://api.openweathermap.org/data/2.5/weather?q=\(city)&units=metric&appid=f54f13fa57c119e48d6e09992d6179ac")
+                     }
             }
 
         }
         .padding().onAppear {
-            loadData(urlString: "https://api.openweathermap.org/data/2.5/weather?q=Den%20Bosch&units=metric&appid=f54f13fa57c119e48d6e09992d6179ac")
+            loadData(urlString: "https://api.openweathermap.org/data/2.5/weather?q=\(city)&units=metric&appid=f54f13fa57c119e48d6e09992d6179ac")
         }
     }
     
     func loadData(urlString: String){
-        var temperature = "?"
         guard let url = URL(string:urlString) else {
             print("ERROR: failed to construct a URL from string"); return}
         let task = URLSession.shared.dataTask(with: url) {
@@ -53,15 +65,20 @@ struct ContentView: View {
                 print("ERROR: read or decoding failed")
                 return
             }
-            self.weatherData = newWeatherData
-            print("succes")
+            
+            DispatchQueue.main.async {
+                self.weatherData = newWeatherData
+            }
         }
         task.resume()
         
     }
     
     func getTemperatureString()->String{
-        return ""
+        guard let temp = weatherData?.main.temp else{
+            return "?"
+        }
+        return "\(temp)" + " C°"
     }
     
 }
